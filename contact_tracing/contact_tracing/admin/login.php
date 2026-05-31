@@ -1,0 +1,81 @@
+<?php
+session_start();
+require_once __DIR__ . '/../includes/db.php';
+
+if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+    header('Location: dashboard.php');
+    exit;
+}
+
+$pageTitle = 'Admin Login';
+$assetBase = '../';
+$error     = '';
+
+/* Authentication: plain-text comparison against hardcoded credentials.
+   Username: admin | Password: coedept2024
+   For production use password_hash/password_verify instead. */
+define('ADMIN_USERNAME', 'admin');
+define('ADMIN_PASSWORD', 'coedept2024');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+    if ($username === '' || $password === '') {
+        $error = 'Please enter both username and password.';
+    } elseif ($username !== ADMIN_USERNAME || $password !== ADMIN_PASSWORD) {
+        $error = 'Invalid username or password.';
+        sleep(1);
+    } else {
+        session_regenerate_id(true);
+        $_SESSION['admin_logged_in'] = true;
+        $_SESSION['admin_user']      = $username;
+        header('Location: dashboard.php');
+        exit;
+    }
+}
+
+require_once __DIR__ . '/../includes/header.php';
+?>
+
+<div class="login-wrapper">
+    <div class="card">
+        <!-- USC-Styled Login Header -->
+        <div class="login-card-header">
+            <div class="seal-large">
+                <span style="font-size:.7rem;font-weight:900;color:var(--usc-blue);text-align:center;line-height:1.1;">USC<br>1783</span>
+            </div>
+            <h2>Administration Portal</h2>
+            <p>Contact Tracing &amp; Visitor Management</p>
+        </div>
+
+        <?php if ($error !== ''): ?>
+            <div class="alert alert-error">&#9888; <?= e($error) ?></div>
+        <?php endif; ?>
+
+        <form method="POST" novalidate>
+            <div class="form-group" style="margin-bottom:16px;">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username"
+                       placeholder="Enter admin username" required
+                       autocomplete="username"
+                       value="<?= e($_POST['username'] ?? '') ?>">
+            </div>
+            <div class="form-group" style="margin-bottom:24px;">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password"
+                       placeholder="Enter admin password" required
+                       autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" style="border-radius:6px;padding:12px;">
+                Login to Dashboard &rarr;
+            </button>
+        </form>
+
+        <hr class="divider">
+        <p style="text-align:center;font-size:.83rem;color:var(--gray-muted);">
+            <a href="../index.php" style="color:var(--usc-blue);">&larr; Back to visitor portal</a>
+        </p>
+    </div>
+</div>
+
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>
